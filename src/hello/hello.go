@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -56,7 +59,8 @@ func leComando() int {
 
 func exibeMonitoramento() {
 	fmt.Println("Monitorando...")
-	sites := [] string{"https://random-status-code.herokuapp.com/","https://www.alura.com.br","https://www.caelum.com.br"}
+	// sites := [] string{"https://random-status-code.herokuapp.com/","https://www.alura.com.br","https://www.caelum.com.br"}
+	sites := leSitesDoArquivo()
 	
 	for i := 0; i < monitoramento; i++ {
 		for i, site := range sites {
@@ -69,11 +73,43 @@ func exibeMonitoramento() {
 }
 
 func testaSite(site string) {
-	resposta, _ := http.Get(site)
+	resposta, err := http.Get(site)
+
+	if err != nil {
+		fmt.Print("Ocorreu um erro:", err)
+	}
 
 	if resposta.StatusCode == 200 {
 		fmt.Println("Site:", site, "foi carregado com sucesso!")
 	}else {
 		fmt.Println("Site:", site, "está com problemas. StatusCode:", resposta.StatusCode)
 	}
+}
+
+func leSitesDoArquivo() []string {
+	var sites [] string
+
+	arquivo, err := os.Open("sites.txt")
+
+	if err != nil {
+		fmt.Println("Ocorreu um erro:", err)
+	}
+
+	leitor := bufio.NewReader(arquivo)
+
+	for {
+		linha, err := leitor.ReadString('\n')
+		linha = strings.TrimSpace(linha)
+
+		sites = append(sites, linha)
+
+		if err == io.EOF {
+			break
+		}
+	
+	}
+
+	arquivo.Close()
+	
+	return sites
 }
