@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -24,6 +26,7 @@ func main() {
 			exibeMonitoramento()
 		case 2:
 			fmt.Println("Exibindo Logs...")
+			imprimeLogs()
 		case 3: 
 			fmt.Println("Saindo do programa...")
 			os.Exit(0)
@@ -81,8 +84,10 @@ func testaSite(site string) {
 
 	if resposta.StatusCode == 200 {
 		fmt.Println("Site:", site, "foi carregado com sucesso!")
+		registraLog(site, true)
 	}else {
 		fmt.Println("Site:", site, "está com problemas. StatusCode:", resposta.StatusCode)
+		registraLog(site, false)
 	}
 }
 
@@ -112,4 +117,26 @@ func leSitesDoArquivo() []string {
 	arquivo.Close()
 	
 	return sites
+}
+
+func registraLog (site string, status bool) {
+	arquivo, err := os.OpenFile("log.txt", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	arquivo.WriteString(time.Now().Format("02/01/2006 15:04:05")+ " - " + site + " - online: " + strconv.FormatBool(status) + "\n")
+
+	arquivo.Close()
+}
+
+func imprimeLogs() {
+	arquivo, err := ioutil.ReadFile("log.txt")
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(string(arquivo))
 }
